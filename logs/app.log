@@ -1,0 +1,28 @@
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug: * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 573-862-957
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug: * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 573-862-957
+INFO:werkzeug:127.0.0.1 - - [23/Nov/2026 21:32:00] "[33mGET / HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [23/Nov/2026 21:32:00] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+INFO:root:PROMPT: You are a helpful support agent. Reply in JSON with reply, action and args.
+Customer name: Ravi Kumar
+Customer email: ravi.kumar@example.com
+Customer phone: +91 98480 12345
+Customer message: Where is my order 10231?
+INFO:root:REPLY to ravi.kumar@example.com: Let me check order 10231.
+INFO:werkzeug:127.0.0.1 - - [23/Nov/2026 21:35:11] "POST /chat HTTP/1.1" 200 -
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug: * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 573-862-957
+INFO:werkzeug:127.0.0.1 - - [23/Nov/2026 21:36:53] "[33mGET / HTTP/1.1[0m" 404 -
