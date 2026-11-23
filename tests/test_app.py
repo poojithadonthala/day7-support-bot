@@ -24,3 +24,44 @@ def test_order_status(client):
 def test_unknown_order(client):
     response = client.post("/chat", json={"customer_email": "priya.s@example.com", "message": "What is the status of order 99999?"})
     assert response.get_json()["action_result"] == "Order not found"
+
+def test_refund_requires_human_approval(client):
+    response = client.post(
+        "/chat",
+        json={
+            "customer_email": "ravi.kumar@example.com",
+            "message": "Please refund Rs 500 for order 10231"
+        }
+    )
+
+    assert response.status_code == 202
+    assert response.get_json()["approval_required"] is True
+    assert response.get_json()["action_result"] is None
+
+
+def test_excessive_refund_is_rejected(client):
+    response = client.post(
+        "/chat",
+        json={
+            "customer_email": "ravi.kumar@example.com",
+            "message": "Please refund Rs 999999 for order 10231"
+        }
+    )
+
+    assert response.status_code == 400
+    assert response.get_json()["error"] == "Invalid AI response"
+
+
+def test_account_deletion_requires_human_approval(client):
+    response = client.post(
+        "/chat",
+        json={
+            "customer_email": "ravi.kumar@example.com",
+            "message": "Please close my account"
+        }
+    )
+
+    assert response.status_code == 202
+    assert response.get_json()["approval_required"] is True
+    assert response.get_json()["action_result"] is None
+
