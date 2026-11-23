@@ -52,6 +52,60 @@ TOOLS = {
 }
 
 
+def validate_llm_result(result):
+    """Validate the AI response before using any returned action."""
+
+    if not isinstance(result, dict):
+        raise ValueError("Invalid AI response")
+
+    if not isinstance(result.get("reply"), str):
+        raise ValueError("Invalid reply")
+
+    action = result.get("action")
+    args = result.get("args")
+
+    if not isinstance(args, dict):
+        raise ValueError("Invalid action arguments")
+
+    if action is None:
+        if args:
+            raise ValueError("Arguments supplied without an action")
+        return result
+
+    if action not in TOOLS:
+        raise ValueError("Unapproved action")
+
+    if action == "get_order_status":
+        if set(args) != {"order_id"}:
+            raise ValueError("Invalid order-status arguments")
+        if not isinstance(args["order_id"], str):
+            raise ValueError("Invalid order ID")
+
+    elif action == "issue_refund":
+        if set(args) != {"order_id", "amount"}:
+            raise ValueError("Invalid refund arguments")
+
+        order_id = args["order_id"]
+        amount = args["amount"]
+
+        if not isinstance(order_id, str) or order_id not in ORDERS:
+            raise ValueError("Invalid or unknown order")
+
+        if isinstance(amount, bool) or not isinstance(amount, int):
+            raise ValueError("Invalid refund amount")
+
+        if amount <= 0 or amount > ORDERS[order_id]["amount"]:
+            raise ValueError("Refund amount exceeds allowed limit")
+
+    elif action == "delete_customer_account":
+        if set(args) != {"customer_email"}:
+            raise ValueError("Invalid account-deletion arguments")
+
+        if args["customer_email"] != "from_request":
+            raise ValueError("Invalid account-deletion target")
+
+    return result
+
 # ---------- Chat endpoint ----------
 
 @app.post("/chat")
@@ -70,19 +124,47 @@ def chat():
     )
     logging.info("PROMPT: %s", prompt)
 
-    text, usage = call_llm(prompt, API_KEY)
-    result = json.loads(text)
+   
+    try:
+        text, usage = call_llm(prompt, API_KEY)
+        result = json.loads(text)
+        validate_llm_result(result)
+
+    except (json.JSONDecodeError, ValueError, TypeError):
+        logging.warning("Invalid AI response received")
+        return jsonify({
+            "error": "Invalid AI response"
+        }), 400
 
     action = result.get("action")
     action_result = None
+
+    # Sensitive actions must not execute automatically.
+    if action in ("issue_refund", "delete_customer_account"):
+        logging.info(
+            "Sensitive action requires human approval: %s",
+            action
+        )
+
+        return jsonify({
+            "reply": "Your request has been received and requires human approval.",
+            "action_result": None,
+            "approval_required": True
+        }), 202
+
+    # Only validated, non-sensitive actions are executed.
     if action:
-        args = result.get("args", {})
-        if args.get("customer_email") == "from_request":
-            args["customer_email"] = email
+        args = result["args"]
         action_result = TOOLS[action](**args)
 
-    logging.info("REPLY to %s: %s", email, result["reply"])
-    return jsonify({"reply": result["reply"], "action_result": action_result})
+    logging.info("Support request processed successfully")
+
+    return jsonify({
+        "reply": result["reply"],
+        "action_result": action_result,
+        "approval_required": False
+    })
+
 
 
 if __name__ == "__main__":
