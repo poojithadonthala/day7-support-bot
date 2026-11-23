@@ -5,6 +5,8 @@ and an action, and the app carries out the action.
 """
 import json
 import logging
+import time
+import uuid
 
 from flask import Flask, jsonify, request
 
@@ -122,11 +124,46 @@ def chat():
         f"Customer phone: {customer.get('phone')}\n"
         f"Customer message: {message}"
     )
-    logging.info("PROMPT: %s", prompt)
-
-   
     try:
+        # Generate a unique ID for this request
+        request_id = str(uuid.uuid4())
+
+        # Record which model is being used
+        model_name = "fake-support-llm"
+
+        # Start measuring AI response time
+        start_time = time.perf_counter()
+
+        # Call the AI model
         text, usage = call_llm(prompt, API_KEY)
+
+        # Calculate response time
+        latency_ms = round(
+            (time.perf_counter() - start_time) * 1000, 2
+        )
+
+        # Get token usage
+        input_tokens = usage.get("input_tokens", 0)
+        output_tokens = usage.get("output_tokens", 0)
+
+        # Calculate estimated cost in INR
+        estimated_cost = round(
+            (input_tokens + output_tokens) * 0.0005, 4
+        )
+
+        # Log monitoring details without customer personal information
+        logging.info(
+            "AI_MONITORING request_id=%s model=%s latency_ms=%s "
+            "input_tokens=%s output_tokens=%s estimated_cost_inr=%s",
+            request_id,
+            model_name,
+            latency_ms,
+            input_tokens,
+            output_tokens,
+            estimated_cost
+        )
+
+        # Parse and validate the AI response
         result = json.loads(text)
         validate_llm_result(result)
 
